@@ -1,7 +1,7 @@
-import type { FxConfig } from "@/types/FxConfig";
+import type { IFx } from "@/types/IFx";
 
 export interface IManifest {
     name: string;
     env: Record<string, string>;
-    fx: Array<FxConfig>;
+    fx: Array<IFx>;
 }
