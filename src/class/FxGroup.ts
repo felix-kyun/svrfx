@@ -1,7 +1,7 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { manifestSchema } from "@/schema/manifestSchema";
-import type { FxConfig } from "@/types/FxConfig";
+import type { IFx } from "@/types/IFx";
 import type { IManifest } from "@/types/Manifest";
 import { fileExists } from "@/utils/fileExists";
 
@@ -9,7 +9,7 @@ export class FxGroup {
     private constructor(
         private readonly path: string,
         public readonly name: string,
-        public readonly fx: Array<FxConfig>,
+        public readonly fx: Array<IFx>,
         public readonly env: Record<string, string>,
     ) {}
 
@@ -40,6 +40,15 @@ export class FxGroup {
         }
 
         return new FxGroup(path, name, [], {});
+    }
+
+    setEnv(key: string, value: string) {
+        this.env[key] = value;
+    }
+
+    addFx(fx: IFx) {
+        if (this.fx.find((f) => f.name === fx.name)) {
+        }
     }
 
     async save() {
