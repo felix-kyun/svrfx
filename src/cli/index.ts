@@ -1,1 +1,3 @@
-console.log("Welcome to svrfx cli");
+import { program } from "@/cli/commands";
+
+program.parse(process.argv);
