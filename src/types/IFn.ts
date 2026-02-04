@@ -1,4 +1,4 @@
-export interface IFx {
+export interface IFn {
     /*
      * the name of the function
      * can be duplicated if the method or route is different

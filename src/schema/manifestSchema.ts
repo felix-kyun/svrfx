@@ -1,5 +1,5 @@
 import * as z from "zod";
-import type { IFx } from "@/types/IFx";
+import type { IFn } from "@/types/IFn";
 import type { IManifest } from "@/types/Manifest";
 
 export const fxSchema = z.object({
@@ -17,7 +17,7 @@ export const manifestSchema = z.object({
     fx: z.array(fxSchema),
 });
 
-export const _test_config = {} as IFx satisfies z.infer<typeof fxSchema>;
+export const _test_config = {} as IFn satisfies z.infer<typeof fxSchema>;
 export const _test_manifest = {} as IManifest satisfies z.infer<
     typeof manifestSchema
 >;

@@ -1,7 +1,7 @@
 import { fxSchema } from "@/schema/manifestSchema";
-import type { IFx } from "@/types/IFx";
+import type { IFn } from "@/types/IFn";
 
-export class Fx implements IFx {
+export class Fn implements IFn {
     constructor(
         public name: string,
         public route: string = "/",
@@ -9,21 +9,21 @@ export class Fx implements IFx {
         public sandbox: 0 | 1 | 2 | 3 = 0,
     ) {}
 
-    static from(fx: IFx): Fx {
-        return new Fx(fx.name, fx.route, fx.method, fx.sandbox);
+    static from(fx: IFn): Fn {
+        return new Fn(fx.name, fx.route, fx.method, fx.sandbox);
     }
 
-    static fromObject(obj: object): Fx {
+    static fromObject(obj: object): Fn {
         const fx = fxSchema.safeParse(obj);
         if (!fx.success) {
             console.error(fx.error);
-            throw new Error("Invalid Fx configuration");
+            throw new Error("Invalid Fn configuration");
         }
 
-        return Fx.from(fx.data);
+        return Fn.from(fx.data);
     }
 
-    toJSON(): IFx {
+    toJSON(): IFn {
         return {
             name: this.name,
             route: this.route,

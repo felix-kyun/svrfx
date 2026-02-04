@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { createFx, createGroup, setEnv } from "@/cli/methods";
+import { createFn, createGroup, setEnv } from "@/cli/methods";
 
 const program = new Command();
 
@@ -23,6 +23,6 @@ program
     .argument("<value>", "Environment variable value")
     .action(setEnv);
 
-program.command("create").description("Create a new function").action(createFx);
+program.command("create").description("Create a new function").action(createFn);
 
 program.parse(process.argv);

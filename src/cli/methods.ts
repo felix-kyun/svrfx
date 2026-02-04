@@ -2,13 +2,13 @@ import { confirm, input, select } from "@inquirer/prompts";
 import chalk from "chalk";
 import logSymbols from "log-symbols";
 import ora from "ora";
-import { FxGroup } from "@/class/FxGroup";
+import { Project } from "@/class/Project";
 
 export async function createGroup(name: string) {
     const spinner = ora(`Creating group ${chalk.cyan.bold(name)}`).start();
 
     try {
-        const group = await FxGroup.create(process.cwd(), name);
+        const group = await Project.create(process.cwd(), name);
         await group.save();
     } catch (error: unknown) {
         spinner.fail(`${chalk.red.bold((error as Error).message)}`).stop();
@@ -23,7 +23,7 @@ export async function createGroup(name: string) {
 export async function setEnv(key: string, value: string) {
     const spinner = ora(`Loading Group`).start();
     try {
-        const group = await FxGroup.load(process.cwd());
+        const group = await Project.load(process.cwd());
         group.setEnv(key, value);
         await group.save();
     } catch (error: unknown) {
@@ -38,16 +38,16 @@ export async function setEnv(key: string, value: string) {
         .stop();
 }
 
-export async function listFx() {}
+export async function listFn() {}
 
-export async function deleteFx() {}
+export async function deleteFn() {}
 
-export async function createFx() {
+export async function createFn() {
     const spinner = ora("Loading group").start();
-    let group: FxGroup;
+    let group: Project;
 
     try {
-        group = await FxGroup.load(process.cwd());
+        group = await Project.load(process.cwd());
     } catch (error: unknown) {
         spinner.fail(`${chalk.red.bold((error as Error).message)}`).stop();
         process.exit(1);
@@ -131,7 +131,7 @@ export async function createFx() {
     spinner.text = `Creating function ${chalk.cyan.bold(name)}`;
 
     try {
-        group.addFx({
+        group.addFn({
             name,
             route,
             method: method as "get" | "post",

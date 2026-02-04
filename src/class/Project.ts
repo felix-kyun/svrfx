@@ -1,35 +1,40 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { manifestSchema } from "@/schema/manifestSchema";
-import type { IFx } from "@/types/IFx";
+import type { IFn } from "@/types/IFn";
 import type { IManifest } from "@/types/Manifest";
 import { fileExists } from "@/utils/fileExists";
 
-export class FxGroup {
+export class Project {
     private constructor(
         private readonly path: string,
         public readonly name: string,
-        public readonly fx: Array<IFx>,
+        public readonly fx: Array<IFn>,
         public readonly env: Record<string, string>,
     ) {}
 
-    // load an existing FxGroup
+    // load an existing Project
     static async load(root: string) {
         const path = resolve(root);
         await access(path);
-        await access(join(path, "manifest.json"));
 
-        const rawManifest = JSON.parse(
-            await readFile(join(path, "manifest.json"), "utf8"),
-        );
-        const parse = manifestSchema.safeParse(rawManifest);
-        if (!parse.success) {
-            console.error(parse.error);
-            throw new Error("unable to parse manifest");
+        let fileContent: string;
+        try {
+            await access(join(path, "manifest.json"));
+            fileContent = await readFile(join(path, "manifest.json"), "utf8");
+        } catch {
+            throw new Error("Unable to read manifest, Does it exist?");
         }
 
-        const manifest: IManifest = parse.data;
-        return new FxGroup(path, manifest.name, manifest.fx, manifest.env);
+        let manifest: IManifest;
+        try {
+            const obj = JSON.parse(fileContent);
+            manifest = manifestSchema.parse(obj);
+        } catch {
+            throw new Error("Unable to parse manifest, please fix it.");
+        }
+
+        return new Project(path, manifest.name, manifest.fx, manifest.env);
     }
 
     static async create(rootDirectory: string, name: string) {
@@ -39,16 +44,24 @@ export class FxGroup {
             throw new Error("Directory already exists");
         }
 
-        return new FxGroup(path, name, [], {});
+        return new Project(path, name, [], {});
     }
 
     setEnv(key: string, value: string) {
         this.env[key] = value;
     }
 
-    addFx(fx: IFx) {
-        if (this.fx.find((f) => f.name === fx.name)) {
-        }
+    addFn(fx: IFn) {
+        const existing = this.fx.findIndex(
+            (f) =>
+                f.name === fx.name &&
+                f.route === fx.route &&
+                f.method === fx.method,
+        );
+
+        if (existing !== -1) {
+            this.fx[existing] = { ...this.fx[existing], ...fx };
+        } else this.fx.push(fx);
     }
 
     async save() {
