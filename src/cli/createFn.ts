@@ -1,18 +1,21 @@
+import { writeFile } from "node:fs/promises";
 import { confirm, input, select } from "@inquirer/prompts";
 import chalk from "chalk";
-import logSymbols from "log-symbols";
 import ora from "ora";
 import { Project } from "@/class/Project";
+import { fail, warn } from "@/cli/log";
+import type { IFn } from "@/types/IFn";
 import { prompt } from "@/utils/prompt";
+import { template } from "./template";
 
 export async function createFn() {
     const spinner = ora("Loading group").start();
-    let group: Project;
 
+    let group: Project;
     try {
         group = await Project.load(process.cwd());
     } catch (error: unknown) {
-        spinner.fail(`${chalk.red.bold((error as Error).message)}`).stop();
+        spinner.fail(chalk.red.bold((error as Error).message));
         process.exit(1);
     }
 
@@ -73,12 +76,7 @@ export async function createFn() {
         (fx) => fx.name === name && fx.route === route && fx.method === method,
     );
     if (existing) {
-        console.log(
-            logSymbols.warning,
-            chalk.yellow.bold(
-                ` Function with the same name, route and method already exists.`,
-            ),
-        );
+        warn(`Function with the same name, route and method already exists.`);
 
         const proceed = await prompt(confirm, {
             message: "Do you want to proceed anyway?",
@@ -86,29 +84,37 @@ export async function createFn() {
         });
 
         if (!proceed) {
-            console.log(chalk.red.bold("Aborting function creation."));
+            fail("Function creation aborted");
             process.exit(0);
         }
     }
 
     spinner.text = `Creating function ${chalk.cyan.bold(name)}`;
+    spinner.start();
+    const fn: IFn = {
+        name,
+        route,
+        method: method as "get" | "post",
+        sandbox: sandbox as 0 | 1 | 2 | 3,
+    };
 
     try {
-        group.addFn({
-            name,
-            route,
-            method: method as "get" | "post",
-            sandbox: sandbox as 0 | 1 | 2 | 3,
-        });
+        group.addFn(fn);
         await group.save();
-
-        spinner.text = `Creating file for function ${chalk.cyan.bold(name)}`;
-
-        spinner
-            .succeed(`Function ${chalk.cyan.bold(name)} created successfully`)
-            .stop();
     } catch (error: unknown) {
-        spinner.fail(`${chalk.red.bold((error as Error).message)}`).stop();
+        spinner.fail(chalk.red.bold((error as Error).message)).stop();
         process.exit(1);
     }
+
+    spinner.text = `Creating file for function ${chalk.cyan.bold(name)}`;
+    spinner.start();
+
+    try {
+        await writeFile(`${process.cwd()}/${name}.js`, template(fn));
+    } catch (error: unknown) {
+        spinner.fail(chalk.red.bold((error as Error).message));
+        process.exit(1);
+    }
+
+    spinner.succeed(`Function ${chalk.cyan.bold(name)} created successfully`);
 }
