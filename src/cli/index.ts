@@ -1,5 +1,6 @@
 import { Command } from "commander";
-import { createFn, createGroup, setEnv } from "@/cli/methods";
+import { createFn } from "@/cli/createFn";
+import { createGroup, setEnv } from "@/cli/methods";
 
 const program = new Command();
 
