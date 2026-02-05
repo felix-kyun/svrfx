@@ -4,9 +4,9 @@ import chalk from "chalk";
 import ora from "ora";
 import { Project } from "@/class/Project";
 import { fail, warn } from "@/cli/log";
+import { template } from "@/cli/template";
 import type { IFn } from "@/types/IFn";
 import { prompt } from "@/utils/prompt";
-import { template } from "./template";
 
 export async function createFn() {
     const spinner = ora("Loading group").start();
