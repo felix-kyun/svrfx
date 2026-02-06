@@ -9,17 +9,19 @@ import type { IFn } from "@/types/IFn";
 import { prompt } from "@/utils/prompt";
 
 export async function createFn() {
-    const spinner = ora("Loading group").start();
+    const spinner = ora("Loading Project").start();
 
-    let group: Project;
+    let project: Project;
     try {
-        group = await Project.load(process.cwd());
+        project = await Project.load(process.cwd());
     } catch (error: unknown) {
         spinner.fail(chalk.red.bold((error as Error).message));
         process.exit(1);
     }
 
-    spinner.succeed("Group loaded successfully").stop();
+    spinner
+        .succeed(`Project ${chalk.cyan.bold(project.name)} loaded successfully`)
+        .stop();
 
     const name = await prompt(input, {
         message: "Function name",
@@ -72,8 +74,8 @@ export async function createFn() {
         ],
     });
 
-    const existing = group.fx.find(
-        (fx) => fx.name === name && fx.route === route && fx.method === method,
+    const existing = project.fn.find(
+        (fn) => fn.name === name && fn.route === route && fn.method === method,
     );
     if (existing) {
         warn(`Function with the same name, route and method already exists.`);
@@ -99,8 +101,8 @@ export async function createFn() {
     };
 
     try {
-        group.addFn(fn);
-        await group.save();
+        project.addFn(fn);
+        await project.save();
     } catch (error: unknown) {
         spinner.fail(chalk.red.bold((error as Error).message)).stop();
         process.exit(1);

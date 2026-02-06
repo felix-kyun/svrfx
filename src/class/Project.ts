@@ -9,7 +9,7 @@ export class Project {
     private constructor(
         private readonly path: string,
         public readonly name: string,
-        public readonly fx: Array<IFn>,
+        public readonly fn: Array<IFn>,
         public readonly env: Record<string, string>,
     ) {}
 
@@ -34,7 +34,7 @@ export class Project {
             throw new Error("Unable to parse manifest, please fix it.");
         }
 
-        return new Project(path, manifest.name, manifest.fx, manifest.env);
+        return new Project(path, manifest.name, manifest.fn, manifest.env);
     }
 
     static async create(rootDirectory: string, name: string) {
@@ -51,17 +51,17 @@ export class Project {
         this.env[key] = value;
     }
 
-    addFn(fx: IFn) {
-        const existing = this.fx.findIndex(
+    addFn(fn: IFn) {
+        const existing = this.fn.findIndex(
             (f) =>
-                f.name === fx.name &&
-                f.route === fx.route &&
-                f.method === fx.method,
+                f.name === fn.name &&
+                f.route === fn.route &&
+                f.method === fn.method,
         );
 
         if (existing !== -1) {
-            this.fx[existing] = { ...this.fx[existing], ...fx };
-        } else this.fx.push(fx);
+            this.fn[existing] = { ...this.fn[existing], ...fn };
+        } else this.fn.push(fn);
     }
 
     async save() {
@@ -76,7 +76,7 @@ export class Project {
         const manifest = {
             name: this.name,
             env: this.env,
-            fx: this.fx,
+            fn: this.fn,
         };
         await writeFile(
             join(this.path, "manifest.json"),

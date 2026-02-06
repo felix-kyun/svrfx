@@ -11,7 +11,7 @@ describe("Project class", () => {
         const group = await Project.create(resources, "new_group");
 
         expect(group.name).toBe("new_group");
-        expect(group.fx).toEqual([]);
+        expect(group.fn).toEqual([]);
         expect(group.env).toEqual({});
     });
 

@@ -1,4 +1,4 @@
-import { fxSchema } from "@/schema/manifestSchema";
+import { fnSchema } from "@/schema/manifestSchema";
 import type { IFn } from "@/types/IFn";
 
 export class Fn implements IFn {
@@ -9,18 +9,18 @@ export class Fn implements IFn {
         public sandbox: 0 | 1 | 2 | 3 = 0,
     ) {}
 
-    static from(fx: IFn): Fn {
-        return new Fn(fx.name, fx.route, fx.method, fx.sandbox);
+    static from(fn: IFn): Fn {
+        return new Fn(fn.name, fn.route, fn.method, fn.sandbox);
     }
 
     static fromObject(obj: object): Fn {
-        const fx = fxSchema.safeParse(obj);
-        if (!fx.success) {
-            console.error(fx.error);
+        const fn = fnSchema.safeParse(obj);
+        if (!fn.success) {
+            console.error(fn.error);
             throw new Error("Invalid Fn configuration");
         }
 
-        return Fn.from(fx.data);
+        return Fn.from(fn.data);
     }
 
     toJSON(): IFn {
