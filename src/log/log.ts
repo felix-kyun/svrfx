@@ -1,5 +1,6 @@
 import pino from "pino";
 import { ENV, LOG_LEVEL } from "@/config";
+import { pinoFlush } from "@/log/pinoFlush";
 import { root } from "@/utils/root";
 
 const transport = pino.transport({
@@ -19,7 +20,7 @@ const transport = pino.transport({
             options: {
                 destination: `${root()}/logs/error.log`,
                 mkdir: true,
-                sync: false,
+                sync: true,
             },
         },
         ...(ENV !== "production"
@@ -46,3 +47,15 @@ export const logger = pino(
     },
     transport,
 );
+
+process.on("uncaughtException", async (err) => {
+    logger.error({ err }, "Uncaught Exception");
+    await pinoFlush();
+    process.exit(1);
+});
+
+process.on("unhandledRejection", async (reason) => {
+    logger.error({ reason }, "Unhandled Rejection");
+    await pinoFlush();
+    process.exit(1);
+});
