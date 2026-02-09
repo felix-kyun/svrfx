@@ -7,20 +7,34 @@ const transport = pino.transport({
     targets: [
         {
             level: LOG_LEVEL,
-            target: "pino/file",
+            target: "pino-roll",
             options: {
-                destination: `${root()}/logs/app.log`,
+                file: `${root()}/logs/app.log`,
                 mkdir: true,
                 sync: false,
+                size: "10m",
+                frequency: "daily",
+                symlink: true,
+                limit: {
+                    count: 10,
+                    removeOtherLogFiles: true,
+                },
             },
         },
         {
             level: "error",
-            target: "pino/file",
+            target: "pino-roll",
             options: {
-                destination: `${root()}/logs/error.log`,
+                file: `${root()}/logs/error.log`,
                 mkdir: true,
                 sync: true,
+                size: "10m",
+                frequency: "daily",
+                symlink: true,
+                limit: {
+                    count: 10,
+                    removeOtherLogFiles: true,
+                },
             },
         },
         ...(ENV !== "production"
