@@ -1,13 +1,22 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import {
+    access,
+    glob,
+    mkdir,
+    readFile,
+    stat,
+    writeFile,
+} from "node:fs/promises";
+import { join, relative, resolve } from "node:path";
+import pLimit from "p-limit";
 import { manifestSchema } from "@/schema/manifestSchema";
+import type { IFileIndex } from "@/types/IFileIndex";
 import type { IFn } from "@/types/IFn";
-import type { IManifest } from "@/types/Manifest";
+import type { IManifest } from "@/types/IManifest";
 import { fileExists } from "@/utils/fileExists";
 
 export class Project {
     private constructor(
-        private readonly path: string,
+        public readonly path: string,
         public readonly name: string,
         public readonly fn: Array<IFn>,
         public readonly env: Record<string, string>,
@@ -81,6 +90,48 @@ export class Project {
         await writeFile(
             join(this.path, "manifest.json"),
             JSON.stringify(manifest, null, 4),
+        );
+    }
+
+    async createIndex() {
+        const files = glob(join(this.path, "**/*.{js,ts,json}"), {
+            exclude: ["node_modules/**"],
+        });
+
+        const limit = pLimit(10);
+        const tasks: Array<Promise<IFileIndex>> = [];
+        for await (const file of files) {
+            tasks.push(
+                limit(async () => {
+                    const stats = await stat(file);
+
+                    return {
+                        name: relative(this.path, file),
+                        hash: Bun.hash
+                            .xxHash3(await Bun.file(file).arrayBuffer())
+                            .toString(),
+                        size: stats.size,
+                        mtime: stats.mtime.getTime(),
+                    };
+                }),
+            );
+        }
+
+        return await Promise.all(tasks);
+    }
+
+    async writeIndex() {
+        const index = await this.createIndex();
+
+        await writeFile(
+            join(this.path, "index.json"),
+            JSON.stringify(index, null, 4),
+        );
+    }
+
+    async loadIndex() {
+        return JSON.parse(
+            await readFile(join(this.path, "index.json"), "utf8"),
         );
     }
 }
