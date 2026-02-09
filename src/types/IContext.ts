@@ -11,6 +11,7 @@ export interface IRequest<T = unknown> {
     method: string;
     path: string;
     headers: Record<string, string>;
+    params: Record<string, string>;
     query: Record<string, string>;
     body: T;
     ip: string | undefined;
@@ -19,6 +20,6 @@ export interface IRequest<T = unknown> {
 export interface IResponse<T = unknown> {
     status: number;
     headers: Record<string, string>;
-    body: T;
+    body: T | undefined;
     type: string;
 }

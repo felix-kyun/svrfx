@@ -2,42 +2,51 @@ import type { Request, Response } from "express";
 import type { Project } from "@/class/Project";
 import type { IContext, IRequest, IResponse } from "@/types/IContext";
 
-export class Context<TRequestBody = unknown, TResponseBody = unknown>
-    implements IContext
+export class Context<
+    ReqParams extends Record<string, string> = {},
+    ReqBody = unknown,
+    ReqQuery extends Record<string, string> = {},
+    ResBody = unknown,
+    Locals extends Record<string, unknown> = {},
+> implements IContext
 {
-    private constructor(
-        public readonly env: Record<string, string>,
-        public readonly req: IRequest<TRequestBody>,
-        public readonly res: IResponse<TResponseBody>,
-        public readonly meta: {
-            requestId: string;
-            startTime: number;
-            project: Project;
-        },
-    ) {}
+    env: Record<string, string>;
+    req: IRequest<ReqBody>;
+    res: IResponse<ResBody>;
+    #res: Response<ResBody, Locals>;
+    meta: {
+        requestId: string;
+        startTime: number;
+        project: Project;
+    };
 
-    static from<T>(project: Project, req: Request<T>) {
-        const request: IRequest = {
+    constructor(
+        project: Project,
+        req: Request<ReqParams, ResBody, ReqBody, ReqQuery, Locals>,
+        res: Response<ResBody, Locals>,
+    ) {
+        this.env = project.env;
+        this.req = {
             method: req.method,
             path: req.path,
             headers: req.headers as Record<string, string>,
-            query: req.query as Record<string, string>,
-            body: req.body as T,
+            query: req.query as ReqQuery,
+            params: req.params as ReqParams,
+            body: req.body,
             ip: req.ip || req.socket.remoteAddress,
         };
-
-        const response: IResponse = {
+        this.#res = res;
+        this.res = {
             status: 200,
             headers: {},
-            body: null,
+            body: undefined as ResBody,
             type: "application/json",
         };
-
-        return new Context(project.env, request, response, {
+        this.meta = {
             requestId: crypto.randomUUID(),
             startTime: Date.now(),
             project,
-        });
+        };
     }
 
     status(status: number) {
@@ -50,20 +59,20 @@ export class Context<TRequestBody = unknown, TResponseBody = unknown>
         return this;
     }
 
-    json(data: TResponseBody): this {
+    json(data: ResBody): this {
         this.res.body = data;
         this.res.type = "application/json";
         return this;
     }
 
     text(data: string): this {
-        this.res.body = data as TResponseBody;
+        this.res.body = data as ResBody;
         this.res.type = "text/plain";
         return this;
     }
 
     html(data: string): this {
-        this.res.body = data as TResponseBody;
+        this.res.body = data as ResBody;
         this.res.type = "text/html";
         return this;
     }
@@ -74,20 +83,20 @@ export class Context<TRequestBody = unknown, TResponseBody = unknown>
         return this;
     }
 
-    finish(res: Response) {
-        res.status(this.res.status);
-        res.type(this.res.type);
+    finish() {
+        this.#res.status(this.res.status);
+        this.#res.type(this.res.type);
 
         Object.entries(this.res.headers).forEach(([key, value]) => {
-            res.setHeader(key, value);
+            this.#res.setHeader(key, value);
         });
 
         if (!this.res.body) {
-            res.end();
+            this.#res.end();
         } else if (this.res.type.includes("json")) {
-            res.json(this.res.body);
+            this.#res.json(this.res.body);
         } else {
-            res.send(this.res.body);
+            this.#res.send(this.res.body);
         }
     }
 
