@@ -1,3 +1,3 @@
-import type { Request, Response } from "express";
+import type { IContext } from "@/types/IContext";
 
-export type Handler = (req: Request, res: Response) => Promise<void>;
+export type Handler = (context: IContext) => Promise<void>;
