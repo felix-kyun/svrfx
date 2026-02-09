@@ -1,6 +1,6 @@
 import * as z from "zod";
 import type { IFn } from "@/types/IFn";
-import type { IManifest } from "@/types/Manifest";
+import type { IManifest } from "@/types/IManifest";
 
 export const fnSchema = z.object({
     name: z.string(),
