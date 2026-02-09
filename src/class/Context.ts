@@ -11,8 +11,8 @@ export class Context<
 > implements IContext<ReqParams, ReqBody, ReqQuery, ResBody>
 {
     env: Record<string, string>;
-    req: IContext<ReqParams, ReqBody, ReqQuery, ResBody>["req"];
     res: IContext<ReqParams, ReqBody, ReqQuery, ResBody>["res"];
+    #req: Request<ReqParams, ResBody, ReqBody, ReqQuery, Locals>;
     #res: Response<ResBody, Locals>;
     meta: {
         requestId: string;
@@ -26,15 +26,7 @@ export class Context<
         res: Response<ResBody, Locals>,
     ) {
         this.env = project.env;
-        this.req = {
-            method: req.method,
-            path: req.path,
-            headers: req.headers as Record<string, string>,
-            query: req.query,
-            params: req.params,
-            body: req.body,
-            ip: req.ip || req.socket.remoteAddress,
-        };
+        this.#req = req;
         this.#res = res;
         this.res = {
             status: 200,
@@ -47,6 +39,27 @@ export class Context<
             startTime: Date.now(),
             project,
         };
+    }
+
+    get req(): IContext<ReqParams, ReqBody, ReqQuery, ResBody>["req"] {
+        const value = {
+            method: this.#req.method,
+            path: this.#req.path,
+            headers: this.#req.headers as Record<string, string>,
+            query: this.#req.query,
+            params: this.#req.params,
+            body: this.#req.body,
+            ip: this.#req.ip || this.#req.socket.remoteAddress,
+        };
+
+        Object.defineProperty(this, "req", {
+            value,
+            writable: false,
+            configurable: false,
+            enumerable: true,
+        });
+
+        return value;
     }
 
     status(status: number) {
