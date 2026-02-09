@@ -42,9 +42,9 @@ export class Registry {
                 this.app[fn.method](
                     `/${project.name}${fn.route}`,
                     async (req: Request, res: Response) => {
-                        const context = Context.from(project, req);
+                        const context = new Context(project, req, res);
                         await handler.run(context);
-                        context.finish(res);
+                        context.finish();
 
                         logger.debug(
                             `handled ${project.name}:${fn.name} (${fn.method} ${fn.route}) in ${Date.now() - context.meta.startTime}ms`,

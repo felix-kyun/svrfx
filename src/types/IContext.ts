@@ -1,25 +1,29 @@
-export interface IContext {
+export interface IContext<
+    ReqParams extends Record<string, unknown> = {},
+    ReqBody = unknown,
+    ReqQuery extends Record<string, unknown> = {},
+    ResBody = unknown,
+    // Locals extends Record<string, unknown> = {},
+> {
     env: Record<string, string>;
-    req: IRequest;
-    res: IResponse;
+    req: {
+        method: string;
+        path: string;
+        headers: Record<string, string>;
+        params: ReqParams;
+        query: ReqQuery;
+        body: ReqBody;
+        ip: string | undefined;
+    };
+    res: {
+        status: number;
+        headers: Record<string, string>;
+        body: ResBody;
+        type: string;
+    };
 
-    status(status: number): void;
-    header(key: string, value: string): void;
-}
-
-export interface IRequest<T = unknown> {
-    method: string;
-    path: string;
-    headers: Record<string, string>;
-    params: Record<string, string>;
-    query: Record<string, string>;
-    body: T;
-    ip: string | undefined;
-}
-
-export interface IResponse<T = unknown> {
-    status: number;
-    headers: Record<string, string>;
-    body: T | undefined;
-    type: string;
+    status(status: number): this;
+    header(key: string, value: string): this;
+    text(text: string): this;
+    json(data: unknown): this;
 }

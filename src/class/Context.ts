@@ -1,18 +1,18 @@
 import type { Request, Response } from "express";
 import type { Project } from "@/class/Project";
-import type { IContext, IRequest, IResponse } from "@/types/IContext";
+import type { IContext } from "@/types/IContext";
 
 export class Context<
-    ReqParams extends Record<string, string> = {},
+    ReqParams extends Record<string, unknown> = {},
     ReqBody = unknown,
-    ReqQuery extends Record<string, string> = {},
+    ReqQuery extends Record<string, unknown> = {},
     ResBody = unknown,
     Locals extends Record<string, unknown> = {},
-> implements IContext
+> implements IContext<ReqParams, ReqBody, ReqQuery, ResBody>
 {
     env: Record<string, string>;
-    req: IRequest<ReqBody>;
-    res: IResponse<ResBody>;
+    req: IContext<ReqParams, ReqBody, ReqQuery, ResBody>["req"];
+    res: IContext<ReqParams, ReqBody, ReqQuery, ResBody>["res"];
     #res: Response<ResBody, Locals>;
     meta: {
         requestId: string;
@@ -30,8 +30,8 @@ export class Context<
             method: req.method,
             path: req.path,
             headers: req.headers as Record<string, string>,
-            query: req.query as ReqQuery,
-            params: req.params as ReqParams,
+            query: req.query,
+            params: req.params,
             body: req.body,
             ip: req.ip || req.socket.remoteAddress,
         };
