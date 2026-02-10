@@ -27,6 +27,6 @@ export class LazyFn {
     async run(context: IContext) {
         if (!this.loadedFn) this.load();
 
-        this.loadedFn?.(context);
+        await this.loadedFn?.(context);
     }
 }
